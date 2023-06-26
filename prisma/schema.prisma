@@ -11,9 +11,9 @@ datasource db {
   relationMode = "prisma"
 }
 
-model LFHelpPost {
-    id String 
-}
+// model LFHelpPost {
+//     id String 
+// }
 
 // Necessary for Next auth
 model Account {
