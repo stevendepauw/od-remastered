@@ -2,19 +2,36 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
-  provider = "prisma-client-js"
+    provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "mysql"
-  url = env("DATABASE_URL")
-  relationMode = "prisma"
+    provider     = "mysql"
+    url          = env("DATABASE_URL")
+    relationMode = "prisma"
 }
 
-model Example {
-    id        String   @id @default(cuid())
+model Post {
+    id        String   @id @default(uuid())
+    userId    String
+    content   String
     createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
+
+    user  User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+    likes Like[]
+
+    @@index([userId])
+}
+
+model Like {
+    userId String
+    postId String
+    user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+    Post   Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+    @@id([userId, postId])
+    @@index([userId])
+    @@index([postId])
 }
 
 // Necessary for Next auth
@@ -24,12 +41,12 @@ model Account {
     type              String
     provider          String
     providerAccountId String
-    refresh_token     String?  @db.Text
-    access_token      String?  @db.Text
+    refresh_token     String? @db.Text
+    access_token      String? @db.Text
     expires_at        Int?
     token_type        String?
     scope             String?
-    id_token          String?  @db.Text
+    id_token          String? @db.Text
     session_state     String?
     user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -43,7 +60,7 @@ model Session {
     userId       String
     expires      DateTime
     user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-    
+
     @@index([userId])
 }
 
@@ -55,6 +72,12 @@ model User {
     image         String?
     accounts      Account[]
     sessions      Session[]
+
+    // not related to next auth
+    posts     Post[]
+    likes     Like[]
+    followers User[] @relation(name: "Followers")
+    follows   User[] @relation(name: "Followers")
 }
 
 model VerificationToken {
