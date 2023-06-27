@@ -1,7 +1,7 @@
 import { useSession } from "next-auth/react";
 import { CustomButton } from "./CustomButton";
 import { ProfileImage } from "./ProfileImage";
-import { FormEvent, useCallback, useLayoutEffect, useRef, useState } from "react";
+import { type FormEvent, useCallback, useLayoutEffect, useRef, useState } from "react";
 import { api } from "~/utils/api";
 
 function updatePostSize(textArea?: HTMLTextAreaElement) {
