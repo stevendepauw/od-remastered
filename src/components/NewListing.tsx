@@ -12,9 +12,7 @@ function updatePostSize(textArea?: HTMLTextAreaElement) {
 
 export function NewListing() {
     const session = useSession();
-    if (session.status !== "authenticated") return
-
-    return <Form />
+    if (session.status !== "authenticated") return null
 }
 
 function Form() {
@@ -32,8 +30,8 @@ function Form() {
 
   const createPost = api.post.create.useMutation({
     onSuccess: (newPost) => {
-      console.log(newPost);
       setInputValue("");
+      console.log(newPost);
     }
   })
 
