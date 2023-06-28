@@ -5,6 +5,7 @@ import { useSession } from "next-auth/react";
 import { VscHeartFilled, VscHeart } from "react-icons/vsc";
 import { IconHoverEffects } from "./IconHoverEffects";
 import { api } from "~/utils/api";
+import { LoadingSpinner } from "./LoadingSpinner";
 
 type Post = {
   id: string;
@@ -30,7 +31,7 @@ export function AllPostings({
   fetchNewPosts,
   hasMore = false,
 }: AllPostingsProps) {
-  if (isLoading) return <h1>Loading...</h1>;
+  if (isLoading) return <LoadingSpinner />;
   if (isError) return <h1>Error...</h1>;
   if (posts == null) return null;
 
@@ -46,7 +47,7 @@ export function AllPostings({
         dataLength={posts.length}
         next={fetchNewPosts}
         hasMore={hasMore || false}
-        loader={"Loading..."}
+        loader={<LoadingSpinner />}
       >
         {posts.map((post) => {
           return <PostCard key={post.id} {...post} />;
@@ -100,6 +101,8 @@ function PostCard({
       };
 
       trcpUtils.post.allPostsFeed.setInfiniteData({}, updateData);
+      trcpUtils.post.allPostsFeed.setInfiniteData({ onlyFollowing: true}, updateData);
+      trcpUtils.post.allProfiles.setInfiniteData({ userId: user.id}, updateData);
     },
   });
 
