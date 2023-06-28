@@ -26,7 +26,7 @@ function RecentPostings() {
       posts={posts.data?.pages.flatMap((page) => page.posts)}
       isError = {posts.isError}
       isLoading = {posts.isLoading}
-      hasMore = {posts.hasNextPage!}
+      hasMore = {posts.hasNextPage }
       fetchNewPosts = {posts.fetchNextPage}
 
     />
