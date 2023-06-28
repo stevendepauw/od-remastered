@@ -31,7 +31,7 @@ export const postRouter = createTRPCRouter({
       z.object({
         onlyFollowing: z.boolean().optional(),
         limit: z.number().optional(),
-        cursor: z.object({ id: z.string(), createAt: z.date() }).optional(),
+        cursor: z.object({ id: z.string(), createdAt: z.date() }).optional(),
       })
     )
     .query(

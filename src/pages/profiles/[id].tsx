@@ -10,6 +10,9 @@ import { AllPostings } from "~/components/AllPostings";
 
 const ProfilePage: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = ({ id, }) => {
     const { data: profile} = api.profile.getById.useQuery({ id })
+    const posts = api.post.allProfileFeed.useInfiniteQuery({ userId: id },
+        { getNextPageParam: (lastPage) => lastPage.nextCursor})
+
     if (profile == null || profile.name == null) return <ErorrPage statusCode={404}/>
     return <>
         <Head>
@@ -34,11 +37,19 @@ const ProfilePage: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = ({
                     {profile.followsCount} Following
 
                 </div>
-                {/* <FollowButton isFollowing={profile.isFollowing} userId={ id }
-                    onClick = {() => null}/> */}
+                {/* <FollowButton 
+                    isFollowing={profile.isFollowing}
+                    userId={ id }
+                    onClick = {() => null}
+                /> */}
             </div>
             <main>
-                {/* <AllPostings /> */}
+                <AllPostings
+                    posts={posts.data?.pages.flatMap((page) => page.posts)}
+                    isError = {posts.isError}
+                    isLoading = {posts.isLoading}
+                    hasMore = {posts.hasNextPage!}
+                    fetchNewPosts = {posts.fetchNextPage} />
             </main>
         </header>
     </>
