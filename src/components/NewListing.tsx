@@ -1,30 +1,36 @@
 import { useSession } from "next-auth/react";
 import { CustomButton } from "./CustomButton";
 import { ProfileImage } from "./ProfileImage";
-import { type FormEvent, useCallback, useLayoutEffect, useRef, useState } from "react";
+import {
+  type FormEvent,
+  useCallback,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
 import { api } from "~/utils/api";
 
 function updatePostSize(textArea?: HTMLTextAreaElement) {
-    if(textArea == null) return
-    textArea.style.height = '0'
-    textArea.style.height = `${textArea.scrollHeight}px`
+  if (textArea == null) return;
+  textArea.style.height = "0";
+  textArea.style.height = `${textArea.scrollHeight}px`;
 }
 
 export function NewListing() {
-    const session = useSession();
-    if (session.status !== "authenticated") return
+  const session = useSession();
+  if (session.status !== "authenticated") return null;
 
-    return <Form />
+  return <Form />;
 }
 
 function Form() {
-    const session = useSession();
+  const session = useSession();
   const [inputValue, setInputValue] = useState("");
-  const textAreaRef = useRef<HTMLTextAreaElement>()
+  const textAreaRef = useRef<HTMLTextAreaElement>();
   const inputRef = useCallback((textArea: HTMLTextAreaElement) => {
     updatePostSize(textArea);
-    textAreaRef.current = textArea
-  }, [])
+    textAreaRef.current = textArea;
+  }, []);
 
   useLayoutEffect(() => {
     updatePostSize(textAreaRef.current);
@@ -32,25 +38,27 @@ function Form() {
 
   const createPost = api.post.create.useMutation({
     onSuccess: (newPost) => {
-      console.log(newPost);
       setInputValue("");
-    }
-  })
+    },
+  });
 
   if (session.status !== "authenticated") return null;
 
   function handleSubmit(e: FormEvent) {
-    e.preventDefault()
+    e.preventDefault();
 
-    createPost.mutate({ content: inputValue })
+    createPost.mutate({ content: inputValue });
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-2 border-b px-4 py-2">
+    <form
+      onSubmit={handleSubmit}
+      className="flex flex-col gap-2 border-b px-4 py-2"
+    >
       <div className="flex gap-4">
         <ProfileImage src={session.data.user.image} />
         <textarea
-            ref={inputRef}
+          ref={inputRef}
           style={{ height: 0 }}
           value={inputValue}
           onChange={(e) => setInputValue(e.target.value)}
@@ -62,5 +70,3 @@ function Form() {
     </form>
   );
 }
-
-
