@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { VscHeartFilled, VscHeart } from "react-icons/vsc";
 import { IconHoverEffects } from "./IconHoverEffects";
+import { api } from "~/utils/api";
 
 type Post = {
   id: string;
@@ -17,7 +18,7 @@ type Post = {
 type AllPostingsProps = {
   isLoading: boolean;
   isError: boolean;
-  hasMore: boolean;
+  hasMore: boolean | undefined;
   fetchNewPosts: () => Promise<unknown>;
   posts?: Post[];
 };
@@ -27,7 +28,7 @@ export function AllPostings({
   isError,
   isLoading,
   fetchNewPosts,
-  hasMore,
+  hasMore = false,
 }: AllPostingsProps) {
   if (isLoading) return <h1>Loading...</h1>;
   if (isError) return <h1>Error...</h1>;
@@ -44,7 +45,7 @@ export function AllPostings({
       <InfiniteScroll
         dataLength={posts.length}
         next={fetchNewPosts}
-        hasMore={hasMore}
+        hasMore={hasMore || false}
         loader={"Loading..."}
       >
         {posts.map((post) => {
@@ -67,6 +68,45 @@ function PostCard({
   likeCount,
   likedByMe,
 }: Post) {
+  const trcpUtils = api.useContext();
+  const toggleLike = api.post.toggleLike.useMutation({
+    onSuccess: ({ addedLike }) => {
+      const updateData: Parameters<
+        typeof trcpUtils.post.allPostsFeed.setInfiniteData
+      >[1] = (oldData) => {
+        if (oldData == null) return;
+
+        const countModifier = addedLike ? 1 : -1;
+
+        return {
+          ...oldData,
+          pages: oldData.pages.map((page) => {
+            return {
+              ...page,
+              posts: page.posts.map((post) => {
+                if (post.id === id) {
+                  return {
+                    ...post,
+                    likeCount: post.likeCount + countModifier,
+                    likedByMe: addedLike,
+                  };
+                }
+
+                return post;
+              }),
+            };
+          }),
+        };
+      };
+
+      trcpUtils.post.allPostsFeed.setInfiniteData({}, updateData);
+    },
+  });
+
+  function handleToggleLike() {
+    toggleLike.mutate({ id });
+  }
+
   return (
     <li className="flex gap-4 border-b px-4 py-4">
       <Link href={`/profiles/${user.id}`}>
@@ -86,18 +126,30 @@ function PostCard({
           </span>
         </div>
         <p className="whitespace-pre-wrap">{content}</p>
-        <HeartButton likedByMe={likedByMe} likeCount={likeCount} />
+        <HeartButton
+          onClick={handleToggleLike}
+          isLoading={toggleLike.isLoading}
+          likedByMe={likedByMe}
+          likeCount={likeCount}
+        />
       </div>
     </li>
   );
 }
 
 type HeartButtonProps = {
+  onClick: () => void;
+  isLoading: boolean;
   likedByMe: boolean;
   likeCount: number;
 };
 
-function HeartButton({ likedByMe, likeCount }: HeartButtonProps) {
+function HeartButton({
+  isLoading,
+  onClick,
+  likedByMe,
+  likeCount,
+}: HeartButtonProps) {
   const session = useSession();
   const HeartIcon = likedByMe ? VscHeartFilled : VscHeart;
 
@@ -111,22 +163,24 @@ function HeartButton({ likedByMe, likeCount }: HeartButtonProps) {
   }
   return (
     <button
-      className={`group flex items-center gap-1 self-start transition-colors duration-200 -ml-2 ${
+      disabled={isLoading}
+      onClick={onClick}
+      className={`group -ml-2 flex items-center gap-1 self-start transition-colors duration-200 ${
         likedByMe
           ? "text-red-500"
           : "text-gray-500 hover:text-red-500 focus-visible:text-red-500"
       }`}
     >
       <IconHoverEffects red>
-      <HeartIcon
-        className={`transition-colors duration-200 ${
-          likedByMe
-            ? "fill-red-500"
-            : "fill-gray-500 group-hover:fill-red-500 group-focus-visible:fill-red-500"
-        }`}
-      />
+        <HeartIcon
+          className={`transition-colors duration-200 ${
+            likedByMe
+              ? "fill-red-500"
+              : "fill-gray-500 group-hover:fill-red-500 group-focus-visible:fill-red-500"
+          }`}
+        />
       </IconHoverEffects>
-      
+
       <span>{likeCount}</span>
     </button>
   );
