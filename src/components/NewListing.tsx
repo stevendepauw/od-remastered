@@ -39,7 +39,7 @@ function Form() {
   const createPost = api.post.create.useMutation({
     onSuccess: (newPost) => {
       setInputValue("");
-      console.log(newPost);
+      
     },
   });
 
